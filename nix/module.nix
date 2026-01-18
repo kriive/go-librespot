@@ -33,6 +33,19 @@ in
         audio_backend = "alsa";
       };
     };
+
+    mode = lib.mkOption {
+      type = lib.types.enum [
+        "system"
+        "user"
+      ];
+      default = "system";
+      description = ''
+        How to run the service:
+        - "system": Runs as a systemd system service with DynamicUser. Best for headless servers using ALSA.
+        - "user": Runs as a systemd user service (per-user). Required for PulseAudio/PipeWire integration on desktops.
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -42,11 +55,12 @@ in
       bitrate = lib.mkDefault 160;
       initial_volume = lib.mkDefault 100;
       volume_steps = lib.mkDefault 100;
-      audio_backend = lib.mkDefault "alsa";
+      audio_backend = lib.mkDefault (if cfg.mode == "user" then "pulseaudio" else "alsa");
       zeroconf_enabled = lib.mkDefault true;
     };
 
-    systemd.services.go-librespot = {
+    # System Service (DynamicUser)
+    systemd.services.go-librespot = lib.mkIf (cfg.mode == "system") {
       description = "Go Librespot - Spotify Connect Receiver";
       after = [
         "network-online.target"
@@ -80,6 +94,29 @@ in
         LockPersonality = true;
         MemoryDenyWriteExecute = true;
         RestrictRealtime = true;
+      };
+    };
+
+    # User Service
+    systemd.user.services.go-librespot = lib.mkIf (cfg.mode == "user") {
+      description = "Go Librespot - Spotify Connect Receiver";
+      after = [
+        "network-online.target"
+        "sound.target"
+      ];
+      wants = [ "network-online.target" ];
+      wantedBy = [ "default.target" ];
+
+      serviceConfig = {
+        # Copy config to ~/.config/go-librespot/config.yaml on startup
+        ExecStartPre = pkgs.writeShellScript "go-librespot-pre" ''
+          mkdir -p %h/.config/go-librespot
+          ${pkgs.coreutils}/bin/cp -f ${configFile} %h/.config/go-librespot/config.yaml
+        '';
+        ExecStart = "${cfg.package}/bin/go-librespot";
+        Restart = "on-failure";
+        RestartSec = "5s";
+        # No DynamicUser or sandboxing needed for user service (runs as user)
       };
     };
   };
