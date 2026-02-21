@@ -35,6 +35,15 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    assertions = [
+      {
+        assertion =
+          cfg.settings.audio_backend != "pipe"
+          || (cfg.settings ? audio_output_pipe && cfg.settings.audio_output_pipe != "");
+        message = "When audio_backend is set to 'pipe', 'audio_output_pipe' must be set to a valid path.";
+      }
+    ];
+
     services.go-librespot.settings = {
       device_name = lib.mkDefault "Go-Librespot";
       device_type = lib.mkDefault "computer";
