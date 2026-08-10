@@ -32,7 +32,7 @@
             # IMPORTANT: When building for the first time, this hash will fail.
             # Nix will display the correct hash in the error message.
             # Copy that hash and replace `pkgs.lib.fakeHash` with it.
-            vendorHash = "sha256-kCzzybOEP4Tp7OGFZBjIP1FgcQ9u+lgO3931gbaG9hA=";
+            vendorHash = "sha256-FOoW1SdTTB2u5EX/Pktld7mBZCEgF85H4KM+/1puWgg=";
 
             subPackages = [ "cmd/daemon" ];
 
@@ -42,6 +42,7 @@
               pkgs.alsa-lib
               pkgs.libvorbis
               pkgs.flac
+              pkgs.mpg123
             ];
 
             postInstall = ''
