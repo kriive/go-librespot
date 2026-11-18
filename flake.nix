@@ -29,10 +29,7 @@
             version = "0.1.0";
             src = ./.;
 
-            # IMPORTANT: When building for the first time, this hash will fail.
-            # Nix will display the correct hash in the error message.
-            # Copy that hash and replace `pkgs.lib.fakeHash` with it.
-            vendorHash = "sha256-fxB99qZE+U355iKJHIl7LgxqHmYgCiU1FpbyObTXVcQ=";
+            vendorHash = "sha256-CZI3Xv1N5dZ0YV9le7mw3+awgRC2SPLxwCbS/0464+E=";
 
             subPackages = [ "cmd/daemon" ];
 
